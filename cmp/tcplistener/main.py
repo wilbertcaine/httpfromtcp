@@ -11,6 +11,8 @@ def get_lines_channel(fd):
             yield curr
             curr = ''
         curr += data.pop(0)
+    if curr:
+        yield curr
     os.close(fd)
 
 
