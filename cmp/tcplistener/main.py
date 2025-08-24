@@ -1,19 +1,12 @@
 import os
 import socket
+import sys
+from pathlib import Path
 
-def get_lines_channel(fd):
-    curr = ''
-    while data := os.read(fd, 8):
-        data = data.decode()
-        data = data.split('\n')
-        while len(data) > 1:
-            curr += data.pop(0)
-            yield curr
-            curr = ''
-        curr += data.pop(0)
-    if curr:
-        yield curr
-    os.close(fd)
+parent_dir = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(parent_dir))
+
+from internal.request.request import request_from_reader
 
 
 if __name__ == "__main__":
@@ -21,7 +14,14 @@ if __name__ == "__main__":
     s.bind(('localhost', 42069))
     s.listen()
     conn, addr = s.accept()
+    fd = conn.makefile('rb')
     print(f'addr={addr}')
-    for line in get_lines_channel(conn.fileno()):
-        print(line)
+    request, err = request_from_reader(fd)
+    if err:
+        print(err)
+    print('Request Line:')
+    print(f'- Method: {request.request_line.method}')
+    print(f'- Target: {request.request_line.request_target}')
+    print(f'- Version: {request.request_line.http_version}')
+    s.close()
 
