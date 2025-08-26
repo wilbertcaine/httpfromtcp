@@ -23,5 +23,8 @@ if __name__ == "__main__":
     print(f'- Method: {request.request_line.method}')
     print(f'- Target: {request.request_line.request_target}')
     print(f'- Version: {request.request_line.http_version}')
+    print('Headers')
+    for k, v in request.headers.headers.items():
+        print(f'- {k}: {v}')
     s.close()
 

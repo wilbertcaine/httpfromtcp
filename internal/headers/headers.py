@@ -23,12 +23,16 @@ class Headers:
     def __init__(self):
         self.headers: Dict[str, str] = CaseInsensitiveDict()
 
+    def get(self, key, default=None):
+        return self.headers.get(key, default)
+
     def parse(self, data: bytes) -> Tuple[int, bool, Exception | None]:
         n = 0
         idx = data[n:].find(CLRF)
         if idx == -1:
-            return (n, False, None)
+            return (0, False, None)
         if idx == 0:
+            n += 2
             return (n, True, None)
         header = data[n:n+idx].lstrip(b' ').rstrip(b' ')
         header = header.decode().split()
