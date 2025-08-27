@@ -70,5 +70,41 @@ class TestChunkReader(unittest.TestCase):
         r, err = request_from_reader(reader)
         self.assertIsNotNone(err)
 
+    def test_standard_body(self):
+        reader = ChunkReader(
+            data="POST /submit HTTP/1.1\r\nHost: localhost:42069\r\nContent-Length: 13\r\n\r\nhello world!\n",
+            num_bytes_per_read=3
+        )
+        r, err = request_from_reader(reader)
+        self.assertIsNone(err)
+        self.assertIsNotNone(r)
+        self.assertEqual(r.body, "hello world!\n")
+
+    def empty_body_zero_content_length(self):
+        reader = ChunkReader(
+            data="POST /submit HTTP/1.1\r\nHost: localhost:42069\r\nContent-Length: 0\r\n\r\n",
+            num_bytes_per_read=3
+        )
+        r, err = request_from_reader(reader)
+        self.assertEqual(r.body, "")
+        self.assertIsNone(err)
+
+    def empty_body_no_content_length(self):
+        reader = ChunkReader(
+            data="POST /submit HTTP/1.1\r\nHost: localhost:42069\r\n\r\n",
+            num_bytes_per_read=3
+        )
+        r, err = request_from_reader(reader)
+        self.assertEqual(r.body, "")
+        self.assertIsNone(err)
+
+    def test_body_shorter_than_content_length(self):
+        reader = ChunkReader(
+            data="POST /submit HTTP/1.1\r\nHost: localhost:42069\r\nContent-Length: 20\r\n\r\npartial content",
+            num_bytes_per_read=3
+        )
+        r, err = request_from_reader(reader)
+        self.assertIsNotNone(err)
+
 if __name__ == '__main__':
     unittest.main()

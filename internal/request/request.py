@@ -47,6 +47,7 @@ class RequestState(Enum):
 class Request:
     request_line: RequestLine
     headers: Headers
+    body: str
     request_state: RequestState
 
     def parse_single(self, data: bytes) -> tuple[int, Exception | None]:
