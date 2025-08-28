@@ -41,6 +41,7 @@ class RequestLine:
 class RequestState(Enum):
     INIT = auto()
     HEAD = auto()
+    BODY = auto()
     DONE = auto()
 
 @dataclass
