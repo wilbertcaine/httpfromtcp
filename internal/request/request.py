@@ -61,7 +61,25 @@ class Request:
             case RequestState.HEAD:
                 n, done, err = self.headers.parse(data)
                 if done:
+                    self.request_state = RequestState.BODY
+            case RequestState.BODY:
+                content_length = self.headers.get('Content-Length')
+                if content_length is None:
                     self.request_state = RequestState.DONE
+                elif not data:
+                    #pass
+                    return n, Exception(f'body={self.body}, data={data}, expect content_length={content_length}')
+                else:
+                    content_length = int(content_length)
+                    if self.body is None:
+                        self.body = ''
+                    n = len(data)
+                    self.body += data.decode()
+                    if len(self.body) > content_length:
+                        return n, Exception(f'body={self.body} > content_length={content_length}')
+                    elif len(self.body) == content_length:
+                        self.request_state = RequestState.DONE
+                    #print(f'body={self.body}')
             case RequestState.DONE:
                 pass
         return n, err
@@ -69,23 +87,25 @@ class Request:
     def parse(self, data: bytes) -> tuple[int, Exception | None]:
         n, err = 0, None
         while self.request_state != RequestState.DONE:
+            #print(f'parse_single(data={data[n:]})')
             read, err = self.parse_single(data[n:])
             #print(data[n:], self.request_line, self.headers.headers)
             n += read
-            if read == 0 or err:
+            if read == 0 or n == len(data) or err:
                 break
         return n, err
 
 
 def request_from_reader(reader) -> tuple[Request, Exception | None]:
-    request, err = Request(RequestLine(), Headers(), RequestState.INIT), None
+    request, err = Request(RequestLine(), Headers(), '', RequestState.INIT), None
     data = b''
     while request.request_state != RequestState.DONE:
         new_data = reader.read()
+        #print(f'data={data} new_data={new_data}')
         data += new_data
         n, err = request.parse(data)
         if err:
-            print(err)
+            #print(err)
             break
         data = data[n:]
     return request, err
