@@ -26,5 +26,7 @@ if __name__ == "__main__":
     print('Headers')
     for k, v in request.headers.headers.items():
         print(f'- {k}: {v}')
+    print('Body:')
+    print(request.body)
     s.close()
 
