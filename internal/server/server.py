@@ -1,11 +1,17 @@
 import sys
 import socket
 from pathlib import Path
+import asyncio
+
+from internal.response import response
 
 parent_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
 from internal.request.request import request_from_reader
+from internal.response import response
+
+semaphore = asyncio.Semaphore()
 
 class Server:
     def __init__(self, s):
@@ -40,8 +46,12 @@ class Server:
         print('Body:')
         print(request.body)
 
-        data = b'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 13\r\n\r\nHello World!\n'
-        conn.sendall(data)
+        #data = b'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 13\r\n\r\nHello World!\n'
+        #conn.sendall(data)
+        headers = response.get_default_header(0)
+        response.write_status_line(conn, response.StatusCode.OK)
+        response.write_headers(conn, headers)
+
         conn.close()
 
 
