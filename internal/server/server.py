@@ -16,12 +16,13 @@ class Server:
         self.s.close()
 
     def listen(self):
-        self.s.listen()
-        conn, addr = self.s.accept()
-        conn.setblocking(False)
+        while True:
+            self.s.listen()
+            conn, addr = self.s.accept()
+            conn.setblocking(False)
 
-        print(f'addr={addr}')
-        self.handle(conn)
+            print(f'addr={addr}')
+            self.handle(conn)
 
     def handle(self, conn):
         fd = conn.makefile('rb')
@@ -41,7 +42,7 @@ class Server:
 
         data = b'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 13\r\n\r\nHello World!\n'
         conn.sendall(data)
-        self.s.close()
+        conn.close()
 
 
 def serve(port: int):
