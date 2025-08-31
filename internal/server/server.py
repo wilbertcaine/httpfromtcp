@@ -12,6 +12,7 @@ class Server:
         self.s = s
 
     def close(self):
+        print('closing')
         self.s.close()
 
     def listen(self):
@@ -38,18 +39,16 @@ class Server:
         print('Body:')
         print(request.body)
 
-        data = b'''HTTP/1.1 200 OK
-        Content-Type: text/plain
-        Content-Length: 13
-        
-        Hello World!'''
+        data = b'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 13\r\n\r\nHello World!\n'
         conn.sendall(data)
         self.s.close()
 
 
 def serve(port: int):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind(('localhost', 42069))
+    s.bind(('localhost', port))
+
+    print(f'Server started on port={port}')
 
     s = Server(s)
     s.listen()
