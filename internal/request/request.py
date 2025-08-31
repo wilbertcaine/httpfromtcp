@@ -99,14 +99,16 @@ class Request:
 def request_from_reader(reader) -> tuple[Request, Exception | None]:
     request, err = Request(RequestLine(), Headers(), '', RequestState.INIT), None
     data = b''
-    while request.request_state != RequestState.DONE:
-        new_data = reader.read()
-        #print(f'data={data} new_data={new_data}')
+    while request.request_state != RequestState.BODY:
+        print('reading')
+        new_data = reader.read(1024)
+        print(f'data={data} new_data={new_data}')
         data += new_data
         n, err = request.parse(data)
         if err:
             #print(err)
             break
         data = data[n:]
+        print(request)
     return request, err
 
