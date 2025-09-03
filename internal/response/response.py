@@ -32,16 +32,19 @@ def get_default_header(content_length) -> Headers:
     headers.headers.__setitem__('Content-Type', 'text/plain')
     return headers
 
-def write_headers(conn: socket.socket, headers: Headers):
-    def send(data):
-        data = data.encode()
-        n = conn.send(data)
-        if n != len(data):
-            return Exception(f'send={n}, data={data} len={len(data)}')
+def send(conn, data):
+    data = data.encode()
+    n = conn.send(data)
+    if n != len(data):
+        return Exception(f'send={n}, data={data} len={len(data)}')
 
+def write_headers(conn: socket.socket, headers: Headers):
     for k, v in headers.headers.items():
-        if err := send(f'{k}: {v}\r\n'):
+        if err := send(conn, f'{k}: {v}\r\n'):
             return err
-    if err := send('\r\n'):
+    if err := send(conn, '\r\n'):
         return err
 
+def write_body(conn: socket.socket, body: str):
+    if err := send(conn, body):
+        return err

@@ -9,13 +9,23 @@ import threading
 parent_dir = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(parent_dir))
 
-from internal.server.server import serve
+from internal.server import server
+from internal.request import request
+from internal.response import response
+
+def handler(request: request.Request) -> server.HandlerError:
+    status_code, msg = response.StatusCode.OK, 'All good, frfr\n'
+    if request.request_line.request_target == '/yourproblem':
+        status_code, msg = response.StatusCode.BadRequest, 'Your problem is not my problem\n'
+    elif request.request_line.request_target == '/myproblem':
+        status_code, msg = response.StatusCode.InternalServerError, 'Woopsie, my bad\n"'
+    return server.HandlerError(status_code, msg)
 
 
 if __name__ == "__main__":
     port = 42069
     
-    s = serve(port)
+    s = server.serve(port, handler)
 
     def handle_signal(signum, frame):
         print(f"signum={signum} frame={frame}, Server gracefully stopped")
