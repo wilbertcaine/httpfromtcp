@@ -102,6 +102,8 @@ def request_from_reader(reader) -> tuple[Request, Exception | None]:
     while request.request_state != RequestState.BODY:
         print('reading')
         new_data = reader.read()
+        if new_data is None:
+            new_data = b''
         print(f'data={data} new_data={new_data}')
         data += new_data
         n, err = request.parse(data)

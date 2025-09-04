@@ -57,9 +57,10 @@ class Server:
         #conn.sendall(data)
         headers = response.get_default_header(len(handler_error.msg))
 
-        response.write_status_line(conn, handler_error.status_code)
-        response.write_headers(conn, headers)
-        response.write_body(conn, handler_error.msg)
+        writer = response.Writer(conn)
+        writer.write_status_line(handler_error.status_code)
+        writer.write_headers(headers)
+        writer.write_body(handler_error.msg)
 
         conn.close()
 
