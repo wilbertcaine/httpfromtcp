@@ -59,7 +59,7 @@ def handler(request: request.Request) -> server.HandlerError:
     if request.request_line.request_target == '/yourproblem':
         status_code, msg = response.StatusCode.BadRequest, f'{BAD}\n'
     elif request.request_line.request_target == '/myproblem':
-        status_code, msg = response.StatusCode.InternalServerError, f'{ERROR}\n"'
+        status_code, msg = response.StatusCode.InternalServerError, f'{ERROR}\n'
     return server.HandlerError(status_code, msg)
 
 
