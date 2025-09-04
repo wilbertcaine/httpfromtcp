@@ -104,10 +104,13 @@ def request_from_reader(reader) -> tuple[Request, Exception | None]:
         new_data = reader.read()
         if new_data is None:
             new_data = b''
+        #else:
+        #    new_data = new_data.decode('latin-1').encode()
         print(f'data={data} new_data={new_data}')
         data += new_data
         n, err = request.parse(data)
-        if err:
+        if n == 0 or err:
+        #if err:
             #print(err)
             break
         data = data[n:]

@@ -52,8 +52,11 @@ class Server:
         print(req.body)
 
         handler_error = self.handler(req)
+        print(handler_error.status_code)
+        print(handler_error.msg)
 
         #data = b'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 13\r\n\r\nHello World!\n'
+        #data = f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: {len(handler_error.msg)}\r\n\r\n{handler_error.msg}'.encode()
         #conn.sendall(data)
         headers = response.get_default_header(len(handler_error.msg))
 
