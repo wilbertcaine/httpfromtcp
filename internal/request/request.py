@@ -100,8 +100,8 @@ class Request:
 def request_from_reader(reader) -> tuple[Request, Exception | None]:
     request, err = Request(RequestLine(), Headers(), '', RequestState.INIT), None
     data = b''
-    while request.request_state != RequestState.BODY:
-        print('reading')
+    while request.request_state != RequestState.DONE:
+        #print('reading')
         new_data = reader.read()
         if new_data is None:
             new_data = b''
@@ -115,6 +115,6 @@ def request_from_reader(reader) -> tuple[Request, Exception | None]:
             #print(err)
             break
         data = data[n:]
-        print(request)
+        #print(request)
     return request, err
 

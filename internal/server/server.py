@@ -13,12 +13,13 @@ from internal.response import response
 #semaphore = asyncio.Semaphore()
 
 class HandlerError:
-    def __init__(self, status_code: response.StatusCode, msg: str) -> None:
+    def __init__(self, status_code: response.StatusCode, msg: str, headers: dict) -> None:
         self.status_code = status_code
         self.msg = msg
+        self.headers = headers
 
 class Server:
-    def __init__(self, s, handler: Callable[[request.Request], HandlerError]):
+    def __init__(self, s, handler: Callable[[socket.socket, request.Request], HandlerError]):
         self.s = s
         self.handler = handler
 
@@ -51,24 +52,17 @@ class Server:
         print('Body:')
         print(req.body)
 
-        handler_error = self.handler(req)
-        print(handler_error.status_code)
-        print(handler_error.msg)
+        handler_error = self.handler(conn, req)
+        print(f'{handler_error.status_code=}')
+        print(f'{handler_error.msg}')
+        print(f'{handler_error.headers}')
 
         #data = b'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 13\r\n\r\nHello World!\n'
         #data = f'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nConnection: close\r\nContent-Length: {len(handler_error.msg)}\r\n\r\n{handler_error.msg}'.encode()
         #conn.sendall(data)
-        headers = response.get_default_header(len(handler_error.msg))
-
-        writer = response.Writer(conn)
-        writer.write_status_line(handler_error.status_code)
-        writer.write_headers(headers)
-        writer.write_body(handler_error.msg)
-
-        conn.close()
 
 
-def serve(port: int, handler: Callable[[request.Request], HandlerError]):
+def serve(port: int, handler: Callable[[socket.socket, request.Request], HandlerError]):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind(('localhost', port))
 

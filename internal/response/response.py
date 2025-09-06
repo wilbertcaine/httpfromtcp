@@ -17,8 +17,8 @@ def get_default_header(content_length) -> Headers:
     headers = Headers()
     headers.headers.__setitem__('Content-Length', content_length)
     headers.headers.__setitem__('Connection', 'close')
-    #headers.headers.__setitem__('Content-Type', 'text/plain')
-    headers.headers.__setitem__('Content-Type', 'text/html')
+    headers.headers.__setitem__('Content-Type', 'text/plain')
+    #headers.headers.__setitem__('Content-Type', 'text/html')
     return headers
 
 class Writer:
@@ -39,6 +39,7 @@ class Writer:
 
     def send(self, data):
         data = data.encode()
+        #print(data)
         n = self.conn.send(data)
         if n != len(data):
             return Exception(f'send={n}, data={data} len={len(data)}')
@@ -53,3 +54,20 @@ class Writer:
     def write_body(self, body: str):
         if err := self.send(body):
             return err
+
+    def write_chunked_body(self, body: str):
+        n = 0
+        while n < len(body):
+            end = min(n + 32, len(body))
+            if err := self.send(f'{end - n:x}\r\n'):
+                return err
+            if err := self.send(f'{body[n: end]}\r\n'):
+                return err
+            n = end
+
+    def write_chunked_body_done(self):
+        if err := self.send('0\r\n'):
+            return err
+        if err := self.send('\r\n'):
+            return err
+

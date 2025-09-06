@@ -15,8 +15,22 @@ class CaseInsensitiveDict(dict):
     def __contains__(self, key):
         return super().__contains__(key.casefold())
 
+    def pop(self, key, default=None):
+        return super().pop(key.casefold(), default)
+
     def get(self, key, default=None):
         return super().get(key.casefold(), default)
+
+    def update(self, *args, **kwargs):
+        for arg in args:
+            if isinstance(arg, dict):
+                for k, v in arg.items():
+                    self.__setitem__(k, v)
+            else:
+                for k, v in arg:
+                    self.__setitem__(k, v)
+        for k, v in kwargs.items():
+            self.__setitem__(k, v)
 
 
 class Headers:
