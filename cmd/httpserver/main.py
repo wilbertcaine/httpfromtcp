@@ -62,6 +62,16 @@ def handle_str(conn:socket.socket, handler_error: server.HandlerError):
     writer.write_headers(get_headers(handler_error.msg, handler_error.headers))
     writer.write_body(handler_error.msg)
 
+def handle_video(conn:socket.socket, headers: dict, video: bytes):
+    writer = response.Writer(conn)
+    writer.write_status_line(response.StatusCode.OK)
+    _headers = get_headers('', headers)
+    _headers.headers.pop('Content-Length')
+    writer.write_headers(_headers)
+    n = conn.send(video)
+    #print(n)
+    #writer.write_body('\n')
+
 def handle_httpbin(conn: socket.socket, headers: dict, target: str):
     writer = response.Writer(conn)
     writer.write_status_line(response.StatusCode.OK)
@@ -87,21 +97,30 @@ def handle_httpbin(conn: socket.socket, headers: dict, target: str):
 
 
 def handler(conn:socket.socket, request: request.Request) -> server.HandlerError:
-    headers = {'Content-Type': 'text/html'}
+    headers = dict()
     if request.request_line.request_target.startswith('/httpbin'):
         target = 'https://httpbin.org' + request.request_line.request_target.removeprefix('/httpbin')
         status_code, msg = response.StatusCode.InternalServerError, f'{ERROR}\n'
+        headers['Content-Type'] = 'text/html'
         headers['Transfer-Encoding'] = 'chunked'
         headers['Trailer'] = 'X-Content-SHA256, X-Content-Length'
         handler_error = server.HandlerError(response.StatusCode.OK, '', headers)
         print(target)
         handle_httpbin(conn, headers, target)
+    elif request.request_line.request_target == '/video':
+        headers['Content-Type'] = 'video/mp4'
+        with open('assets/vim.mp4', 'rb') as f:
+            video = f.read()
+        status_code = response.StatusCode.OK
+        handler_error = server.HandlerError(status_code, '', headers)
+        handle_video(conn, headers, video)
     else:
         status_code, msg = response.StatusCode.OK, f'{OK}\n'
         if request.request_line.request_target == '/yourproblem':
             status_code, msg = response.StatusCode.BadRequest, f'{BAD}\n'
         elif request.request_line.request_target == '/myproblem':
             status_code, msg = response.StatusCode.InternalServerError, f'{ERROR}\n'
+        headers['Content-Type'] = 'text/html'
         handler_error = server.HandlerError(status_code, msg, headers)
         handle_str(conn, handler_error)
 

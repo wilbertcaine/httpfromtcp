@@ -39,7 +39,7 @@ class Writer:
 
     def send(self, data):
         data = data.encode()
-        #print(data)
+        print(data)
         n = self.conn.send(data)
         if n != len(data):
             return Exception(f'send={n}, data={data} len={len(data)}')
