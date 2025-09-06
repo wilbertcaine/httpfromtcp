@@ -51,6 +51,8 @@ class Writer:
         if err := self.send('\r\n'):
             return err
 
+    write_trailers = write_headers
+
     def write_body(self, body: str):
         if err := self.send(body):
             return err

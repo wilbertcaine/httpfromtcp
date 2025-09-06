@@ -8,6 +8,7 @@ import threading
 
 import requests
 from time import sleep
+import hashlib
 
 
 parent_dir = Path(__file__).resolve().parent.parent.parent
@@ -68,12 +69,21 @@ def handle_httpbin(conn: socket.socket, headers: dict, target: str):
     
     #print(target)
     httpbin_response = requests.get(target, stream=True)
+    msg = b''
     for chunk in httpbin_response.iter_content(64):
         if chunk:
             print(chunk)
+            msg += chunk
             writer.write_chunked_body(chunk.decode())
-            sleep(1)
+            #sleep(1)
     writer.write_chunked_body_done()
+
+    trailers = response.Headers()
+    sha256_hash_object = hashlib.sha256(msg)
+    sha256_hex_digest = sha256_hash_object.hexdigest()
+    trailers.headers['X-Content-SHA256'] = sha256_hex_digest
+    trailers.headers['X-Content-Length'] = str(len(msg))
+    writer.write_trailers(trailers)
 
 
 def handler(conn:socket.socket, request: request.Request) -> server.HandlerError:
@@ -82,6 +92,7 @@ def handler(conn:socket.socket, request: request.Request) -> server.HandlerError
         target = 'https://httpbin.org' + request.request_line.request_target.removeprefix('/httpbin')
         status_code, msg = response.StatusCode.InternalServerError, f'{ERROR}\n'
         headers['Transfer-Encoding'] = 'chunked'
+        headers['Trailer'] = 'X-Content-SHA256, X-Content-Length'
         handler_error = server.HandlerError(response.StatusCode.OK, '', headers)
         print(target)
         handle_httpbin(conn, headers, target)
